@@ -64,6 +64,7 @@ import net.elytrium.commons.utils.updates.UpdatesChecker;
 import net.elytrium.fastmotd.command.MaintenanceCommand;
 import net.elytrium.fastmotd.command.ReloadCommand;
 import net.elytrium.fastmotd.injection.ServerChannelInitializerHook;
+import net.elytrium.fastmotd.integration.RedisBungeeIntegration;
 import net.elytrium.fastmotd.listener.CompatPingListener;
 import net.elytrium.fastmotd.listener.ShutdownOnZeroPlayersListener;
 import net.elytrium.fastmotd.utils.MOTDGenerator;
@@ -83,7 +84,7 @@ import org.slf4j.Logger;
         "Elytrium (https://elytrium.net/)",
     },
     dependencies = {
-      @Dependency(id = "redisbungee")
+      @Dependency(id = "redisbungee", optional = true)
     }
 )
 public class FastMOTD {
@@ -105,6 +106,7 @@ public class FastMOTD {
   private ScheduledTask updater;
   private PreparedPacket kickReason;
   private Set<InetAddress> kickWhitelist;
+  private boolean redisBungeeAvailable = false;
 
   static {
     try {
@@ -142,6 +144,13 @@ public class FastMOTD {
         new PreparedPacketFactory(PreparedPacket::new, StateRegistry.LOGIN, false, 1, 1, false, true, false);
 
     this.reload();
+
+    this.redisBungeeAvailable = this.server.getPluginManager()
+            .getPlugin("redisbungee")
+            .isPresent();
+
+    if (this.redisBungeeAvailable)
+      this.logger.info("RedisBungee found, enabling integration.");
   }
 
   public void reload() {
@@ -336,10 +345,13 @@ public class FastMOTD {
       generator.update(max, online);
     }
   }
-
   private int getOnline() {
-    RedisBungeeAPI api = RedisBungeeAPI.getRedisBungeeApi();
-    int playerCount = api.getPlayerCount();
+    int playerCount;
+    if (this.redisBungeeAvailable) {
+      // In the absence of RedisBungee, a NoClassDefFoundError will not be thrown.
+      playerCount = RedisBungeeIntegration.getPlayerCount();
+    } else
+      playerCount = this.server.getPlayerCount();
 
     int online = playerCount + Settings.IMP.MAIN.FAKE_ONLINE_ADD_SINGLE;
     return online * (Settings.IMP.MAIN.FAKE_ONLINE_ADD_PERCENT + 100) / 100;
