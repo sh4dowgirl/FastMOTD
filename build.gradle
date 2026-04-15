@@ -28,6 +28,10 @@ repositories {
         setUrl("https://maven.elytrium.net/repo/")
     }
     maven {
+        setName("jitpack-repo")
+        setUrl("https://jitpack.io/")
+    }
+    maven {
         setName("papermc-repo")
         setUrl("https://repo.papermc.io/repository/maven-public/")
     }
@@ -47,6 +51,7 @@ dependencies {
 
     compileOnly("io.netty:netty-codec:4.2.10.Final")
     compileOnly("io.netty:netty-handler:4.2.10.Final")
+    compileOnly("com.github.ProxioDev.ValioBungee:RedisBungee-Velocity:0.12.3")
 
     implementation("org.bstats:bstats-velocity:3.2.1")
 }

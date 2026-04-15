@@ -18,11 +18,13 @@
 package net.elytrium.fastmotd;
 
 import com.google.inject.Inject;
+import com.imaginarycode.minecraft.redisbungee.RedisBungeeAPI;
 import com.velocitypowered.api.command.CommandManager;
 import com.velocitypowered.api.event.EventManager;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.network.ProtocolVersion;
+import com.velocitypowered.api.plugin.Dependency;
 import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.ProxyServer;
@@ -75,11 +77,13 @@ import org.slf4j.Logger;
 @Plugin(
     id = "fastmotd",
     name = "FastMOTD",
-    version = BuildConstants.VERSION,
     description = "MOTD plugin that uses FastPrepareAPI.",
     url = "https://elytrium.net/",
     authors = {
         "Elytrium (https://elytrium.net/)",
+    },
+    dependencies = {
+      @Dependency(id = "redisbungee")
     }
 )
 public class FastMOTD {
@@ -334,7 +338,10 @@ public class FastMOTD {
   }
 
   private int getOnline() {
-    int online = this.server.getPlayerCount() + Settings.IMP.MAIN.FAKE_ONLINE_ADD_SINGLE;
+    RedisBungeeAPI api = RedisBungeeAPI.getRedisBungeeApi();
+    int playerCount = api.getPlayerCount();
+
+    int online = playerCount + Settings.IMP.MAIN.FAKE_ONLINE_ADD_SINGLE;
     return online * (Settings.IMP.MAIN.FAKE_ONLINE_ADD_PERCENT + 100) / 100;
   }
 
